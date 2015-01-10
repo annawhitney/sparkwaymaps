@@ -30,15 +30,6 @@ Framework for SparkWay Maps.
         <link href="css/sparkway.css" rel="stylesheet"/>
         <link href="http://fonts.googleapis.com/css?family=Roboto:400,300" rel="stylesheet"/>
         <link href="http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300" rel="stylesheet"/>
-        <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAOF6PnDjD0EI1c3bUyNrQtvcJ3NakYA_A&libraries=geometry&sensor=false"></script>
-        <script src="js/jquery-1.10.2.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/all_stations.js"></script>
-        <script src="js/fast_stations.js"></script>
-        <script src="js/j1772_stations.js"></script>
-        <script src="js/slow_stations.js"></script>
-        <script src="js/other_stations.js"></script>
-        <script src="js/sparkway.js"></script>
         <link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192">
         <link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
         <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
@@ -184,5 +175,14 @@ Framework for SparkWay Maps.
             </div>
         </div>
 
+        <script src="js/jquery-1.10.2.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAOF6PnDjD0EI1c3bUyNrQtvcJ3NakYA_A&libraries=geometry&sensor=false"></script>
+        <script src="js/sparkway.js"></script>
+        <script src="js/all_stations.js"></script>
+        <script src="js/fast_stations.js"></script>
+        <script src="js/j1772_stations.js"></script>
+        <script src="js/slow_stations.js"></script>
+        <script src="js/other_stations.js"></script>
     </body>
 </html>
