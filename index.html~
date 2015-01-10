@@ -14,7 +14,6 @@ Framework for SparkWay Maps.
 
 <html>
     <head>
-        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
         <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
         <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
         <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
@@ -24,10 +23,6 @@ Framework for SparkWay Maps.
         <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
         <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
-        <link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192">
-        <link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
-        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
         <meta name="msapplication-TileColor" content="#da532c">
         <meta name="msapplication-TileImage" content="/mstile-144x144.png">
         <link href="css/bootstrap.min.css" rel="stylesheet"/>
@@ -44,8 +39,12 @@ Framework for SparkWay Maps.
         <script src="js/j1772_stations.js"></script>
         <script src="js/slow_stations.js"></script>
         <script src="js/other_stations.js"></script>
-        <script src="js/cars.js"></script>
         <script src="js/sparkway.js"></script>
+        <link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192">
+        <link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+        <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
         <title>SparkWay Maps</title>
     </head>
     <body>
