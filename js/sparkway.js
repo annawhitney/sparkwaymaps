@@ -79,6 +79,9 @@ $(window).load(function() {
 
     // load map
     mapLoad();
+        
+    // import all-stations JSON in case they never open the stations modal
+    scriptImport('/js/all_stations-min.js');
 
     // attach map to directions renderer
     directionsDisplay.setMap(map);
@@ -108,7 +111,6 @@ $(window).load(function() {
         if (importedStations === false) {
 
             // import them
-            scriptImport('/js/all_stations-min.js');
             scriptImport('/js/fast_stations-min.js');
             scriptImport('/js/j1772_stations-min.js');
             scriptImport('/js/slow_stations-min.js');

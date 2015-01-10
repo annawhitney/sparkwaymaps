@@ -117,7 +117,7 @@ $(window).load(function() {
             // don't do it again
             importedStations = true;
         }
-    }
+    });
 
     // listen for click on get route button
     $('#getroute').click(function(event) {
