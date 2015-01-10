@@ -1,0 +1,174 @@
+/**
+ * service.css
+ *
+ * Computer Science 50
+ * Problem Set 8
+ *
+ * Global stylesheet.
+ */
+       
+html
+{
+    height: 100%;
+    width: 100%;
+}
+
+body
+{
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+p+p
+{
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+#about
+{
+    text-align: left;
+    margin-left: 5px;
+}
+
+#copyright
+{
+    float: right;
+    margin-right: 5px;
+}
+
+.info-header
+{
+    font-size: small;
+}
+
+#left
+{
+    float: left; 
+    height: 100%;
+    width: 500px;
+    z-index: 1;
+    background-color: #f7f7f7;
+}
+
+#logo
+{
+    font-size: x-large;
+    font-weight: bold;
+    text-align: center;
+}
+
+#map-canvas
+{
+    height: inherit;
+    width: inherit;
+}
+
+.map-container
+{
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.map-container i 
+{
+    position: absolute;
+    display: block;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+}
+
+.map-left 
+{
+    left: -5px;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+#menu
+{
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+#options-link
+{
+    letter-spacing: -0.5pt;
+    text-shadow: 1px 1px 1px #e8e8e8;
+}
+
+#page-info
+{
+    text-align: left;
+    font-size: smaller;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#panel
+{
+    margin-left: 5px;
+}
+
+#panel-holder
+{
+    height: 100%;
+    z-index: 1;
+    overflow: scroll;
+}
+
+#range
+{
+    width: 50px;
+}
+
+#right
+{
+    height: 100%;
+    margin-left: 500px;
+    position: relative;
+}
+
+#search-options
+{
+    font-size: 11pt;
+    text-align: center;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 2px;
+    padding-bottom: 10px;
+}
+
+.shadow
+{
+    -webkit-box-shadow: 0 0 10px #777;
+    -moz-box-shadow: 0 0 10px #777;
+    box-shadow: 0 0 10px #777;
+}
+
+#warning
+{
+    line-height: 1.2;
+    text-align: left;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.warning-container
+{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+#whitespace
+{
+    height: 450px;
+}

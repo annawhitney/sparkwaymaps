@@ -1,0 +1,652 @@
+/**
+ * sparkway.js
+ *
+ * Anna Whitney
+ * Computer Science 50
+ * Final Project
+ *
+ * Implements an electric vehicle route planner.
+ */
+
+// constant for converting ranges in miles to meters
+var MILES_TO_METERS = 1609;
+
+// initialize directions service
+var directionsService = new google.maps.DirectionsService();
+
+// global variable for directions display
+var directionsDisplay;
+
+// global variable for map
+var map;
+
+// global variable for waypoints array
+var waypoints = [];
+
+// global variable for station stops array
+var stationStops = [];
+
+// global variable for markers array
+var markers = [];
+
+// global variable for station markers array
+var stationMarkers = [];
+
+// global variable for info windows array
+var infoWindows = [];
+
+// global variable for range
+var range = null;
+
+// global variable for stations array
+var stations = [];
+
+// global variable for counting clicks on the map
+var clicks = 0;
+
+// initialize page on window load
+$(window).load(function() {
+
+    // create new directions renderer object
+    directionsDisplay = new google.maps.DirectionsRenderer;
+
+    // load map
+    mapLoad();
+
+    // attach map to directions renderer
+    directionsDisplay.setMap(map);
+
+    // attach panel for listing directions to directions renderer
+    directionsDisplay.setPanel($('#panel')[0]);
+
+    // set directions renderer options
+    directionsDisplay.setOptions({
+        suppressInfoWindows: true,
+        suppressMarkers: false,
+        markerOptions: {
+            clickable: true,
+            zIndex: 2
+        }
+    });
+
+    // listen for first click on the map
+    google.maps.event.addListener(map, 'click', function(event) {
+        setOriginDestination(event.latLng.toUrlValue());
+    });
+
+    // listen for click on get route button
+    $('#getroute').click(function(event) {
+        mapsQuery();
+    });
+
+});
+
+/**
+ * Loads the map displaying the entire United States.
+ */
+function mapLoad() {
+
+    // define starting center of map as center of contiguous US
+    var center = new google.maps.LatLng(39.828182,-98.579144);
+
+    // define map options to show roughly entire US
+    var mapOptions = {
+        zoom: 4,
+        center: center
+    }
+
+    // create new map
+    map = new google.maps.Map($('#map-canvas')[0], mapOptions);
+}
+
+/**
+ * Sets the origin or destination box to show the location of a click.
+ */
+function setOriginDestination(location_value) {
+
+    // if even number of clicks (zero-indexed)
+    if (clicks % 2 == 0) {
+
+        // put location of click in origin box
+        $('#origin').val(location_value);
+    }
+    
+    // if odd number of clicks
+    else {
+
+        // put location of click in destination box
+        $('#destination').val(location_value);
+    }
+
+    // count click
+    clicks++;
+}
+
+/**
+ * Turns user-submitted options into a request to the Google Maps API.
+ */
+function mapsQuery() {
+
+    // clear stations array from previous query
+    stations = [];
+
+    // clear station markers from previous query from the map
+    for (var i = 0, n = stationMarkers.length; i < n; i++) {
+
+        // remove marker from map
+        stationMarkers[i].setMap(null);
+    }
+    stationMarkers = [];
+
+    // clear info windows from previous query from the map
+    for (var i = 0, n = infoWindows.length; i < n; i++) {
+
+        // remove info window from map
+        infoWindows[i].close();
+    }
+    infoWindows = [];
+
+    // clear directions from previous query
+    directionsDisplay.setDirections({routes: []});
+
+    // clear waypoints array from previous query
+    waypoints = [];
+
+    // clear station stops array from previous query
+    stationStops = [];
+
+    // clear markers array from previous query
+    markers = [];
+
+    // clear any warnings from previous query
+    $('#warning').html("");
+    $('#warning').removeClass("shadow warning-container");
+
+    // if all four boxes checked
+    if ($('#dcfast')[0].checked && $('#j1772')[0].checked && $('#slow')[0].checked && $('#other')[0].checked) {
+
+        // use full list of stations
+        stations = ALL_STATIONS;
+    }
+
+    // else determine which stations to include
+    else {
+
+        // include DC Fast stations in stations array if user checked the "DC Fast stations" box
+        stations = ($('#dcfast')[0].checked)?FAST_STATIONS:[]; 
+
+        // add J1772 stations to stations array if user checked the "J1772 stations" box
+        stations = ($('#j1772')[0].checked)?stations.concat(J1772_STATIONS):stations;
+
+        // add 110V stations to stations array if user checked the "110V stations" box
+        stations = ($('#slow')[0].checked)?stations.concat(SLOW_STATIONS):stations;
+
+        // add other stations to stations array if user checked the "other stations" box
+        stations = ($('#other')[0].checked)?stations.concat(OTHER_STATIONS):stations;
+    }
+
+    // if no station boxes checked
+    if (stations.length == 0) {
+
+        // inform user
+        alert("You must include at least one charger type in your search.");
+    }
+
+    // add markers for stations to the map
+    for (var i = 0, n = stations.length; i < n; i++) {
+        
+        // turn latitude/longitude into format Maps can use
+        var stationLoc = new google.maps.LatLng(stations[i].lat, stations[i].lng);
+
+        // get image for marker
+        var image = 'http://labs.google.com/ridefinder/images/mm_20_orange.png';
+
+        // create title for marker
+        var title = stations[i].station_name + ', ' + stations[i].street_address;
+
+        // add marker to map
+        var marker = new google.maps.Marker({
+            position: stationLoc,
+            icon: image,
+            title: title,
+            map: map,
+            zIndex: 1
+        });
+
+        // add marker to station markers array
+        stationMarkers.push(marker);
+    }
+
+    // if user provided estimated range
+    if ($('#range')[0].value && ($('#range')[0].value > 0)) { 
+
+        // use provided range
+        range = $('#range')[0].value * MILES_TO_METERS;
+    }
+    
+    // else if user provided a car type
+    else if ($('#cars')[0].value) {
+
+        // use estimated range on file for that car
+        range = cars[$('#cars')[0].value].range * MILES_TO_METERS;
+    }
+
+    // else user provided neither car type nor range
+    else {
+
+        // remind user to enter either range or car type
+        alert("You must provide either a car type or an estimated range.");
+
+        // skip the rest of the function
+        return;
+    }
+
+    // check if origin and destination provided
+    if ($('#origin')[0].value && $('#destination')[0].value) {
+
+        // use provided origin
+        origin = $('#origin')[0].value;
+
+        // use provided destination
+        destination = $('#destination')[0].value;
+    }
+    else {
+
+        // remind user to enter both origin and destination
+        alert("You must provide an origin and a destination.");
+
+        // skip the rest of the function
+        return;
+    }
+
+    // define directions request parameters
+    originalRequest = {
+        origin: origin,
+        destination: destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.IMPERIAL,
+    };
+
+    // send directions request
+    directionsCalc();
+}
+
+/**
+ * Sends a directions request to the Maps API and determines whether further
+ * processing is needed.
+ */
+function directionsCalc() {
+
+    // send request with callback function
+    directionsService.route(originalRequest, function(result, status) {
+
+        // if the service returns a valid response
+        if (status == google.maps.DirectionsStatus.OK) {
+            
+            // if the total route distance is longer than range
+            if (result.routes[0].legs[0].distance.value > range) {
+
+                // create array of charging station waypoints
+                createWaypoints(result);
+
+                // add waypoints to new directions request
+                newRequest = {
+                    origin: origin,
+                    destination: destination,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    unitSystem: google.maps.UnitSystem.IMPERIAL,
+                    waypoints: waypoints
+                }
+
+                // send new directions request
+                directionsService.route(newRequest, function(newResult, newStatus){
+                    
+                    // do additional processing on result
+                    additionalPass(newResult, newStatus)
+                });
+            }
+
+            // otherwise no modifications need to be made
+            else {
+               
+                // check if route is longer than 85% of range
+                warnLong(result);
+
+                // display route
+                directionsDisplay.setDirections(result);
+            }
+        }
+
+        // handle errors returned by the Maps API
+        else {
+           
+            handleErrors(status);
+        }
+    });
+}
+
+/**
+ * Finds charging stations at regular intervals along the route and turns them into
+ * waypoints for the route.
+ */
+function createWaypoints(result) {
+
+    // turn overview path of route into polyline
+    var pathPolyline = new google.maps.Polyline({
+        path: result.routes[0].overview_path
+    });
+
+    // get points at intervals of 85% of range along overview path of route
+    var points = pathPolyline.GetPointsAtDistance(0.85 * range);
+
+    // iterate over these points
+    for (var i = 0, n = points.length; i < n; i++) {
+
+        // find the closest charging station to that point
+        var closeStation = getClosestStation(points[i]);
+
+        // create waypoint at that station
+        var newWaypoint = {
+            location: closeStation.latlng,
+            stopover: true
+        };
+
+        // add it to the waypoints array
+        waypoints.push(newWaypoint);
+
+        // add station info to station stops array
+        stationStops.push(closeStation);
+
+        // create invisible marker
+        var marker = new google.maps.Marker({
+            position: closeStation.latlng,
+            map: map,
+            icon: 'img/invisible.png',
+            zIndex: 3,
+        });
+
+        // add to markers array
+        markers.push(marker);
+    }
+}
+
+/**
+ * Finds the station in the current stations array that is closest to a given point.
+ */
+function getClosestStation(point) {
+    
+    // initialize empty distances array
+    var distances = [];
+
+    // initialize variable to hold index of closest station
+    var closest = -1;
+
+    // initialize variable to hold location of station being measured
+    var stationLoc = null;
+
+    // iterate over stations array
+    for (var i = 0, n = stations.length; i < n; i++) {
+
+        // turn station location into format Maps can use
+        stationLoc = new google.maps.LatLng(stations[i].lat, stations[i].lng);
+
+        // distance from station to point
+        var d = google.maps.geometry.spherical.computeDistanceBetween(point, stationLoc);
+
+        // add distance to distances array
+        distances.push(d);
+
+        // if this station is the closest we've found so far
+        if (closest == -1 || d < distances[closest]) {
+
+            // set closest to the index of the current station
+            closest = i;
+        }
+    }
+
+    // return closest station and location in a format Maps can use
+    var closestLocation = new google.maps.LatLng(stations[closest].lat, stations[closest].lng);
+    return {station: stations[closest], latlng: closestLocation};
+}
+
+/**
+ * Checks if route needs any more changes after first round of waypoints were added;
+ * if so, sends another request to the Maps API and runs recursively until the route
+ * is acceptable.
+ */
+function additionalPass(result, status) {
+
+    // if Maps returns a valid response
+    if (status == google.maps.DirectionsStatus.OK) {
+        
+        // initialize variable for checking if route needs any changes
+        var needsCorrection = false;
+
+        // iterate over legs of route
+        for (var i = 0, n = result.routes[0].legs.length; i < n; i++) {
+
+            var legLength = result.routes[0].legs[i].distance.value;
+
+            // if leg is longer than range
+            if (legLength > range) {
+
+                // create new polyline for this leg
+                var polyline = new google.maps.Polyline({ path: [] });
+
+                // iterate over steps of the leg
+                for (var j = 0, m = result.routes[0].legs[i].steps.length; j < m; j++) {
+
+                    // iterate over segments of step
+                    for (var k = 0, l = result.routes[0].legs[i].steps[j].path.length; k < l; k++) {
+
+                        // add segment to polyline
+                        polyline.getPath().push(result.routes[0].legs[i].steps[j].path[k]);
+                    }
+                }
+            
+                // find point 75% of range along this line
+                var nextPoint = polyline.GetPointAtDistance(0.75 * range);
+
+                // get closest station to halfway point
+                var newStation = getClosestStation(nextPoint);
+                
+                // create waypoint at that station
+                var newWaypoint = {
+                    location: newStation.latlng,
+                    stopover: true
+                }
+
+                // add to waypoints array
+                waypoints.push(newWaypoint);
+
+                // add station to station stops array
+                stationStops.push(newStation);
+
+                // create invisible marker
+                var marker = new google.maps.Marker({
+                    position: stationStops[i].latlng,
+                    map: map,
+                    icon: 'img/invisible.png',
+                    zIndex: 3,
+                });
+
+                // add to markers array
+                markers.push(marker);
+
+                // indicate that route needs correction
+                needsCorrection = true;
+            }
+        }
+
+        // if route needs correction
+        if (needsCorrection == true) {
+
+            // create new directions request
+            var nextRequest = {
+                origin: origin,
+                destination: destination,
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.IMPERIAL,
+                waypoints: waypoints,
+                optimizeWaypoints: true
+            }
+
+            // send new directions request
+            directionsService.route(nextRequest, function(nextResult, nextStatus) {
+
+                // try again
+                additionalPass(nextResult, nextStatus)
+            });
+        }
+
+        // otherwise our route is fine as is
+        else {
+
+            // check for legs longer than 85% of range
+            warnLong(result);
+
+            // create a clickable info window for each waypoint
+            createInfoWindows();
+
+            // display route
+            directionsDisplay.setDirections(result);
+        }
+    }
+    
+    // handle errors returned by the Maps API
+    else {
+        
+        handleErrors(status);
+    }
+}
+
+/**
+ * Creates an info window with more details for each charging station the route stops at,
+ * and binds them to a click on each station.
+ */
+function createInfoWindows() {
+
+    // iterate over station stops array
+    for (var i = 0, n = stationStops.length; i < n; i++) {
+
+        // get network info about station, if any
+        var network = (stationStops[i].station.ev_network == null)?'--':stationStops[i].station.ev_network;
+
+        // get intersection directions, if any
+        var intersectDirections = (stationStops[i].station.intersection_directions == null)?'No specific directions available.':stationStops[i].station.intersection_directions;
+
+        // get charger types
+        var chargerTypes = (stationStops[i].station.ev_dc_fast_num)?'DC Fast':'';
+        chargerTypes = (stationStops[i].station.ev_level2_evse_num)?chargerTypes.concat(' J1772'):chargerTypes;
+        chargerTypes = (stationStops[i].station.ev_level1_evse_num)?chargerTypes.concat(' 110V'):chargerTypes;
+        chargerTypes = (stationStops[i].station.ev_other_evse)?chargerTypes.concat(' ' + stationStops[i].station.ev_other_evse):chargerTypes;
+
+        // create HTML string with station details
+        var detailsString = '<div class="info-window">' +
+            '<h1 class="info-header">' + stationStops[i].station.station_name + '</h1>' +
+            '<strong>Open:</strong> ' + stationStops[i].station.access_days_time + '</br>' +
+            '<strong>Use info:</strong> ' + stationStops[i].station.groups_with_access_code + '</br>' +
+            '<strong>Network:</strong> ' + network + '</br>' +
+            '<strong>Charger types:</strong> ' + chargerTypes + '</br>' +
+            '<strong>Find it:</strong> ' + intersectDirections + '</br>' +
+            '</div>';
+
+        // create info window corresponding to station
+        var infowindow = new google.maps.InfoWindow({
+            content: detailsString,
+            maxWidth: 250,
+            pixelOffset: new google.maps.Size(0, 0)
+        });
+
+        // add to info windows array
+        infoWindows.push(infowindow);
+    }
+
+    // iterate over markers array
+    for (var i = 0, n = markers.length; i < n; i++) {
+
+        // create click listener for marker
+        google.maps.event.addListener(markers[i], 'click', (function(i) {
+
+            return function () {
+
+                // put info window on the map
+                infoWindows[i].open(map, markers[i]);
+            };
+        })(i));
+    }
+}
+
+/**
+ * Checks if any leg of the returned route is longer than 85% of the provided range,
+ * and asks the user if they want to recalculate if so.
+ */
+function warnLong(directions) {
+
+    // initialize variable for checking if we need to warn
+    var warnUser = false;
+
+    // make warning box pretty
+    $('#warning').addClass("shadow warning-container");
+
+    // iterate over legs
+    for (var i = 0, n = directions.routes[0].legs.length; i < n; i++) {
+
+        // if longer than 85% of range
+        if (directions.routes[0].legs[i].distance.value > 0.85 * range) {
+
+            // we will need to warn user
+	    warnUser = true;
+        }
+	}
+
+    // check if we need to warn user
+    if (warnUser == true) {
+
+        // warn user
+        $('#warning').html("Using a range of " + Math.round(range / MILES_TO_METERS) + " mi, there is at least one leg of this trip longer than 85% of your range. If you don't want to cut it that close, you can <a href=\"javascript:void(0)\" onclick=\"recalculate();\">recalculate</a>.");
+    }
+    else {
+
+        // tell user what range was used
+        $('#warning').html("Using a range of " + Math.round(range / MILES_TO_METERS) + " mi.");
+    }
+}
+
+/**
+ * Resets the route and tries again with 85% of the previous range.
+ */
+function recalculate() {
+
+    // clear warning
+    $('#warning').html("");
+    $('#warning').removeClass("shadow warning-container");
+
+    // reset waypoints array
+    waypoints = [];
+
+    // reset station stops array
+    stationStops = [];
+
+    // reset markers array
+    markers = [];
+
+    // reset info windows array
+    infoWindows = [];
+
+    // reset range
+    range = 0.85 * range;
+
+    // send request
+    directionsCalc();
+}
+
+/**
+ * Informs user of any error codes returned by the Maps API.
+ */
+function handleErrors(status) {
+ 
+    // inform user of error
+    $('#warning').addClass("shadow warning-container");
+    $('#warning').html("We're sorry, we couldn't process your request. It returned an error code of " + status + ".");
+}
