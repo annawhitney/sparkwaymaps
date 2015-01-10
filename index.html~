@@ -31,7 +31,6 @@ Framework for SparkWay Maps.
         <link href="http://fonts.googleapis.com/css?family=Roboto:400,300" rel="stylesheet"/>
         <link href="http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300" rel="stylesheet"/>
         <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAOF6PnDjD0EI1c3bUyNrQtvcJ3NakYA_A&libraries=geometry&sensor=false"></script>
-        <script src="js/v3_epoly.js"></script>
         <script src="js/jquery-1.10.2.min.js"></script>
         <script src="js/bootstrap.min.js"></script>
         <script src="js/all_stations.js"></script>
