@@ -65,6 +65,9 @@ var range = null;
 // global variable for stations array
 var stations = [];
 
+// global variable for indicating whether stations JSON is loaded yet
+var importedStations = false;
+
 // global variable for counting clicks on the map
 var clicks = 0;
 
@@ -97,9 +100,29 @@ $(window).load(function() {
     google.maps.event.addListener(map, 'click', function(event) {
         setOriginDestination(event.latLng.toUrlValue());
     });
+    
+    // listen for opening of stations modal
+    $('#options-link').click(function(event) {
+
+        // if we haven't imported the stations JSONs yet
+        if (importedStations === false) {
+
+            // import them
+            scriptImport('/js/all_stations-min.js');
+            scriptImport('/js/fast_stations-min.js');
+            scriptImport('/js/j1772_stations-min.js');
+            scriptImport('/js/slow_stations-min.js');
+            scriptImport('/js/other_stations-min.js');
+
+            // don't do it again
+            importedStations = true;
+        }
+    });
 
     // listen for click on get route button
     $('#getroute').click(function(event) {
+
+        // get user's route
         mapsQuery();
     });
 
@@ -923,3 +946,9 @@ google.maps.Polyline.prototype.GetPointsAtDistance  = google.maps.Polygon.protot
 google.maps.Polyline.prototype.GetIndexAtDistance   = google.maps.Polygon.prototype.GetIndexAtDistance;
 google.maps.Polyline.prototype.Bearing              = google.maps.Polygon.prototype.Bearing;
 
+function scriptImport(src) {
+    var scriptElem = document.createElement('script');
+    scriptElem.setAttribute('src',src);
+    scriptElem.setAttribute('type','text/javascript');
+    document.getElementsByTagName('head')[0].appendChild(scriptElem);
+}
