@@ -2,8 +2,6 @@
  * sparkway.js
  *
  * Anna Whitney
- * Computer Science 50
- * Final Project
  *
  * Implements an electric vehicle route planner.
  */
@@ -80,9 +78,6 @@ $(window).load(function() {
     // load map
     mapLoad();
         
-    // import all-stations JSON in case they never open the stations modal
-    scriptImport('/js/all_stations-min.js');
-
     // attach map to directions renderer
     directionsDisplay.setMap(map);
 
@@ -104,6 +99,9 @@ $(window).load(function() {
         setOriginDestination(event.latLng.toUrlValue());
     });
     
+    // import all-stations JSON in case they never open the stations modal
+    scriptImport('/js/all_stations-min.js');
+
     // listen for opening of stations modal
     $('#options-link').click(function(event) {
 
